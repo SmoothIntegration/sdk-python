@@ -1,5 +1,5 @@
 import uuid
-from typing import Literal, TypedDict, cast
+from typing import Literal, TypedDict, cast, Optional
 
 from smoothintegration import _http
 
@@ -18,12 +18,14 @@ class GetConsentUrlResponse(TypedDict):
 def get_consent_url(
     company_id: uuid.UUID,
     version: str,
+    state: Optional[str] = None,
 ) -> str:
     """
     Get the URL to redirect the user to in order to get consent to connect to an ZohoBooks company.
 
     :param company_id: The ID of the SmoothIntegration company to add this new Connection to.
     :param version: Version of ZohoBooks to connect to. One of "us", "eu", "in", "au", "jp", "ca", "cn", "sa".
+    :param state: Optional string. This will be returned to the success page on a new connection.
 
     :returns: The URL to redirect the user to in order to get consent.
     :raises SIError: if the consent url could not be retrieved for any reason.
@@ -32,6 +34,9 @@ def get_consent_url(
         "company_id": company_id,
         "version": version,
     }
+
+    if state is not None:
+        request_params["state"] = state
 
     response = cast(
         GetConsentUrlResponse,
