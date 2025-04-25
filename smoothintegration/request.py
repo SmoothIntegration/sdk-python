@@ -1,13 +1,14 @@
 import uuid
-from typing import Literal, TypedDict, cast, Optional
 
 import requests
 
 from smoothintegration import _http
+from smoothintegration.exceptions import SIError
 
 
 def make_request(
     connection_id: uuid.UUID,
+    path: str,
     **kwargs,
 ) -> requests.Response:
     """
@@ -18,6 +19,7 @@ def make_request(
 
     >>> smoothintegration.request.make_request(
     >>>     uuid.UUID("3a739c6e-d4bc-4b40-ae52-bc8b01bb9973"),
+    >>>     path="/Invoices",
     >>>     method="POST",
     >>>     json={'foo': 'bar'},
     >>>     # any other kwargs are passed to the requests library like "headers" or "params"
@@ -26,4 +28,15 @@ def make_request(
     :returns: The Response from the third party API as is.
     :raises SIError: if there was an issue preparing the authorization.
     """
-    return _http._raw_request("/v1/request/" + str(connection_id), **kwargs)
+
+    if not path.startswith("/"):
+        raise SIError("path must start with a /")
+
+    # Do not allow the "url" to be passed in the kwargs
+    if "url" in kwargs:
+        raise SIError("url is not allowed in kwargs. The url will be constructed automatically based on the connection_id and path provided")
+
+    return _http._raw_request(
+        **kwargs,
+        url="/v1/request/" + str(connection_id) + path,
+    )

@@ -33,12 +33,12 @@ def _generate_hmac(
 
 
 def _raw_request(
-    url: str,
     **kwargs: any,
 ) -> requests.Response:
     # create the Request instance, and then do the request
     from smoothintegration import client_id
 
+    url = kwargs.pop("url")
     passed_headers = kwargs.pop("headers", {})
     method = kwargs.pop("method", "GET")
     req = requests.Request(
@@ -73,7 +73,7 @@ def request(
     :returns: the response body on any 2xx status code. Otherwise, raises smoothintegration.SIError
     :raises smoothintegration.SIError: if the request fails for any reason.
     """
-    response = _raw_request(url, **kwargs)
+    response = _raw_request(url=url, **kwargs)
 
     response_body: Optional[dict] = None
     response_message: Optional[str] = None
