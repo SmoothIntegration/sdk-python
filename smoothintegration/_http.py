@@ -32,21 +32,15 @@ def _generate_hmac(
     return hmac_obj.hexdigest(), timestamp
 
 
-def request(
+def _raw_request(
     url: str,
-    **params: any,
-) -> object:
-    """
-    Perform an HTTP request to the SmoothIntegration API.
-
-    :returns: the response body on any 2xx status code. Otherwise, raises smoothintegration.SIError
-    :raises smoothintegration.SIError: if the request fails for any reason.
-    """
+    **kwargs: any,
+) -> requests.Response:
     # create the Request instance, and then do the request
     from smoothintegration import client_id
 
-    passed_headers = params.pop("headers", {})
-    method = params.pop("method", "GET")
+    passed_headers = kwargs.pop("headers", {})
+    method = kwargs.pop("method", "GET")
     req = requests.Request(
         method=method,
         url="https://api.smooth-integration.com" + url,
@@ -55,7 +49,7 @@ def request(
             "Content-Type": "application/json; charset=utf-8",
             **passed_headers,
         },
-        **params,
+        **kwargs,
     )
     prepared_request = req.prepare()
 
@@ -66,26 +60,39 @@ def request(
 
     # do the request
     with requests.Session() as session:
-        response = session.send(prepared_request)
+        return session.send(prepared_request)
 
-        response_body: Optional[dict] = None
-        response_message: Optional[str] = None
-        parsing_failed = False
-        try:
-            response_body = response.json()
-            response_message = response_body.get("message")
-        except Exception:
-            parsing_failed = True
 
-        if response.status_code >= 500:
-            raise SIError(HTTPStatus(response.status_code).phrase)
+def request(
+    url: str,
+    **kwargs: any,
+) -> object:
+    """
+    Perform an HTTP request to the SmoothIntegration API.
 
-        if response.status_code < 200 or response.status_code >= 300:
-            raise SIError(
-                f"{HTTPStatus(response.status_code).phrase}: {response_message}"
-            )
+    :returns: the response body on any 2xx status code. Otherwise, raises smoothintegration.SIError
+    :raises smoothintegration.SIError: if the request fails for any reason.
+    """
+    response = _raw_request(url, **kwargs)
 
-        if parsing_failed:
-            raise SIError("Failed to parse response body as JSON")
+    response_body: Optional[dict] = None
+    response_message: Optional[str] = None
+    parsing_failed = False
+    try:
+        response_body = response.json()
+        response_message = response_body.get("message")
+    except Exception:
+        parsing_failed = True
 
-        return response_body
+    if response.status_code >= 500:
+        raise SIError(HTTPStatus(response.status_code).phrase)
+
+    if response.status_code < 200 or response.status_code >= 300:
+        raise SIError(
+            f"{HTTPStatus(response.status_code).phrase}: {response_message}"
+        )
+
+    if parsing_failed:
+        raise SIError("Failed to parse response body as JSON")
+
+    return response_body

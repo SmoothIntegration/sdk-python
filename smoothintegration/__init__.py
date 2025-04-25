@@ -8,4 +8,4 @@ from typing import Optional
 client_id: Optional[str] = None
 client_secret: Optional[str] = None
 
-from . import _http, companies, connections, data, exact, exceptions, quickbooks, zohobooks
+from . import _http, companies, connections, data, exact, exceptions, quickbooks, zohobooks, request
