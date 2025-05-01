@@ -54,7 +54,7 @@ class TestExactGetConsentUrl:
             == "the-consent-url"
         )
 
-    def test_can_pass_optional_state(self, mocked_responses, test_client):
+    def test_can_pass_optional_state_parameter(self, mocked_responses, test_client):
         mocked_responses.add(
             responses.GET,
             "https://api.smooth-integration.com/v1/exact/connect"
@@ -75,6 +75,58 @@ class TestExactGetConsentUrl:
                 uuid.UUID("d56b018d-42a3-4f47-b141-44d9d4d81878"),
                 "uk",
                 "51da0abd-beba-4882-a5b6-b3f8d61e8456",
+            )
+            == "the-consent-url"
+        )
+
+    def test_can_pass_optional_single_parameter(self, mocked_responses, test_client):
+        mocked_responses.add(
+            responses.GET,
+            "https://api.smooth-integration.com/v1/exact/connect"
+            "?company_id=d56b018d-42a3-4f47-b141-44d9d4d81878"
+            "&version=uk"
+            "&single=true",
+            json={
+                "message": "Created Consent Url",
+                "result": {
+                    "consentUrl": "the-consent-url",
+                },
+            },
+            status=200,
+        )
+
+        assert (
+            test_client.exact.get_consent_url(
+                uuid.UUID("d56b018d-42a3-4f47-b141-44d9d4d81878"),
+                "uk",
+                single=True,
+            )
+            == "the-consent-url"
+        )
+
+    def test_can_pass_all_optional_parameters(self, mocked_responses, test_client):
+        mocked_responses.add(
+            responses.GET,
+            "https://api.smooth-integration.com/v1/exact/connect"
+            "?company_id=d56b018d-42a3-4f47-b141-44d9d4d81878"
+            "&version=uk"
+            "&state=some-value"
+            "&single=true",
+            json={
+                "message": "Created Consent Url",
+                "result": {
+                    "consentUrl": "the-consent-url",
+                },
+            },
+            status=200,
+        )
+
+        assert (
+            test_client.exact.get_consent_url(
+                company_id=uuid.UUID("d56b018d-42a3-4f47-b141-44d9d4d81878"),
+                version="uk",
+                state="some-value",
+                single=True
             )
             == "the-consent-url"
         )
